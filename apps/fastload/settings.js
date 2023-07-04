@@ -29,6 +29,12 @@
         onchange: v => {
           writeSettings("hideLoading",v);
         }
+      },
+      'Force (KeepWidgetsInMem)': {
+        value: !!settings.force,
+        onchange: v => {
+          writeSettings("force",v);
+        }
       }
     };
     return mainmenu;
