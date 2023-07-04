@@ -10,6 +10,7 @@ This allows fast loading of all apps with two conditions:
 
 * Allows to redirect all loads usually loading the clock to the launcher instead
 * The "Fastloading..." screen can be switched off
+* Force fastloading even if app doesn't use widgets.
 
 ## Technical infos
 

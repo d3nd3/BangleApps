@@ -38,12 +38,19 @@ let slowload = function(n){
 }
 
 let fastload = function(n){
-  if (!n || checkApp(n)){
+  if (!n ){
     // Bangle.load can call load, to prevent recursion this must be the system load
     global.load = slowload;
     Bangle.load(n);
     // if fastloading worked, we need to set load back to this method
     global.load = fastload;
+    if ( checkApp(n) ) {
+      // show widgets
+      require("widget_utils").show();
+    } else {
+      // hide widgets instead
+      require("widget_utils").hide();
+    }
   }
   else
     slowload(n);
