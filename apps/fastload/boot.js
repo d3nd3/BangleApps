@@ -32,6 +32,7 @@ let checkApp = function(n){
   return cache[n].fast;
 };
 
+
 let appHistory, resetHistory, recordHistory;
 if (SETTINGS.useAppHistory){
   appHistory  = s.readJSON("fastload.history.json",true)||[];
