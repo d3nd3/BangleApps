@@ -1,0 +1,15 @@
+{
+  "id": "openhrm",
+  "name": "Open HR Algorithm",
+  "version": "0.01",
+  "description": "Use basic math to improve beat detection",
+  "tags": "health,system",
+  "supports": ["BANGLEJS","BANGLEJS2"],
+  "storage": [
+    {"name":"openhrm.boot.js","url":"boot.js"},
+    {"name":"openhrm.settings.js","url":"settings.js"}
+  ],
+  "data": [
+    {"name": "openhrm.settings.json"}
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "appperf",
+  "name": "Cpu Benchmark",
+  "version": "0.01",
+  "description": "Measure app baseline cpu usage",
+  "tags": "tool",
+  "supports": ["BANGLEJS","BANGLEJS2"],
+  "storage": [
+    {"name":"appperf.app.js","url":"app.js"},
+ 	{"name":"appperf.default.json","url":"default.json"},
+    {"name":"appperf.settings.js","url":"settings.js"}
+  ],
+  "data": [
+    {"name": "appperf.settings.json"}
+  ]
+}
