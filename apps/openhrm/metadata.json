@@ -4,12 +4,16 @@
   "version": "0.01",
   "description": "Use basic math to improve beat detection",
   "tags": "health,system",
+  "type": "bootloader",
   "supports": ["BANGLEJS","BANGLEJS2"],
   "storage": [
     {"name":"openhrm.boot.js","url":"boot.js"},
-    {"name":"openhrm.settings.js","url":"settings.js"}
+    {"name":"openhrm.settings.js","url":"settings.js"},
+    {"name":"openhrm.img","url":"app-icon.js","evaluate":true}
   ],
   "data": [
     {"name": "openhrm.settings.json"}
-  ]
+  ],
+  "icon": "app.png",
+  "readme": "README"
 }

@@ -1,0 +1,20 @@
+## About
+The Bangle doesn't do much processing in the background, but the processing it does do is mostly in a routine known as the peripheral polling routine. It polls sensors like the accelerometer inside this routine. You can specify how many milliseconds often it should fire, doing so affects baseline battery usage because code execution means less sleeping. Drawbacks are that acceleration based operations become more sluggish.
+
+* Benchmark your clock app's baseline usage.
+* Compare it whilst running other widgets in the background.
+* Decide if you want to try fixed polling rate if you do not use accelerometer often.
+* Have peace of mind you are getting the most out of your battery life.
+
+eg. I get a score of `127` @polling rate 80 with Anton clock after reinstall. Changing polling rate in the benchmark settings menu to ~800 brings it down to `77`. So you save on battery by that ratio.
+
+Its not recommended to change polling interval unless you know what you're doing.
+## Settings
+### Polling Interval
+The polling interval you want to use during the benchmark. Can also be applied system-wide with below option.
+### Apply Polling onBoot
+Apply the polling rate you used in benchmark system-wide in a boot file.
+### Clock=SlowPoll NonClock=FastPoll
+This makes the 80/800 switching based on whether the home clock is displayed or not. Instead of being dependant on wrist movement. So `800` polling when home-clock is shown, `80` when any other app is open.
+## Creator
+[@d3nd3 github.com/d3nd3](https://github.com/d3nd3)
