@@ -1,142 +1,43 @@
-{
+let origHRMs = {};
+let OpenHRM = (function() {
   const s = require('Storage');
   let SETTINGS = s.readJSON("openhrm.settings.json") || {};
   if (SETTINGS.enabled) {
-    var c = E.compiledC(`
-    // void onHRM(int,int)
-    // int getTick()
+    var hrmBlob = (function(){
+      var bin=atob("AUt7RBhocEcyBAAALenwR+pM604NaHxEfkQiaDN4svvz9wf7EyPnSiX4EwB6RBOIGEQAshCA5Eh4RAd4I2ifQg3YE4gkaAd4MHjkG7T78PYG+xBANfgQABsaG7ITgNtK20jcS9xPekR4RBZoBHi2+/T+e0QO+xRkG4jOaH9EG7I/eJP79/Mm+BQwE2gDK0DyjYEUaAd4BngDeKTxAw6++/f8DPsX7mcet/vz/Az7E3cCPDX4FzC0+/b3B/sWRDX4HuA1+BRAc0Sj60QD0vgA4AR4F2gGeL779PwCPwz7FOS3+/b+DvsWdjX5FEA1+RZQFmjR+AjgZBsFeLb79fcH+xVlZBAXaC74FUAFeE5ot/v1/Az7FXUbshdoJvgVMA1pAXi3+/H8DPsRcQAnJfgRcBFoHylA8jqB0vgAgKdJkPgAwKjxIAh5RLj7/PoK+xyMsfgAkD75HMAP+on5zEUn0Uf2/3yh+ADA0vgAgJD4AMCx+ACQx+sICLj7/PoK+xyMD/qJ+T75HMDMRQ3a0vgAgJD4AMDH6wgIuPv8+Qn7HIw++RzAofgAwAE3IC/c0QTgCogSspRCuL8MgIlIiU+KSnhEf0TQ+ADAOXis8SAMekS8+/H5CfsRwbL4AIA2+REQD/qI+EFFJ9FH9v9xEYAAIdD4AICX+ADAsvgAkMHrCAi4+/z6CvscjA/6ifk2+RzAzEUN2tD4AICX+ADAwesICLj7/PkJ+xyMNvkcwKL4AMABMSAp3NEE4BGICbKLQri/E4BqSN/4qIFqSnhE+EQHaJj4ABAgP3pEt/vx+Qn7EXGy+ADAPvkREA/6jPxhRSXRT/QAQRGAREYAIdD4AMAneLL4AIDB6wwMvPv3+Qn7F8cP+oj4PvkXcEdFC93Q+ADAJ3jB6wwMvPv3+Aj7F8c++RdwF4ABMSAp39EE4BGICbKMQsi/FIBMSExMTUp4RHxEB2gheCA/ekS3+/H8DPsRcbL4AOA2+REQD/qO/nFFJNFP9ABBEYAAIdD4AOAneLL4AMDB6w4Ovvv3+Aj7F+cP+oz8NvkXcGdFC93Q+ADgJ3jB6w4Ovvv3/Az7F+c2+RdwF4ABMSAp39EE4BGICbKLQsi/E4AvSjBMekQH7pA6EoguSnpEfEQSiC1KekT47ud6EYgsSnpEEIgSiJTtAGoLGhuyB+4QOhKy+O7HagfuECq47sd6pu6GevTux3rx7hD6DNUhS3tEGmggS3tEG3iy+/PxAfsTIxkiJfgTIBxKekQTaAEzE2C96PCHAL8eBAAAEAQAAAwEAADxAwAAzgMAAMADAADGAwAArQMAAOoCAAB0AgAAZgIAAFICAADqAQAA3AEAAMwBAABoAQAAWgEAAFQBAADaAAAA2AAAAN4AAADQAAAAvAAAAKAAAACOAAAAhgAAAP9/AICamRk+QAEAgM3MzDz/fwAAAAAAAAAAAAAAAAAA");
+      return {
+        onHRM:E.nativeCall(13, "void(int,int)", bin),
+        getTick:E.nativeCall(1, "int()", bin),
+      };
+    })();
+    hrmBlob.windowSize = 32;
+    hrmBlob.amps = new Int16Array(hrmBlob.windowSize);
+    hrmBlob.deris = new Int16Array(hrmBlob.windowSize);
+    hrmBlob.grads = new Int16Array(hrmBlob.windowSize);
+    hrmBlob.avgs = new Int16Array(hrmBlob.windowSize);
+    hrmBlob.partial = new Int16Array(hrmBlob.windowSize);
+    let inputs = new Uint32Array(6);
+    hrmBlob.hr = 0;
 
-      volatile unsigned int hr;
-      volatile unsigned int tick;
-      volatile short rollingAvg = 0;
-      volatile short minGrad = 32767;
-      volatile short maxGrad = -32768;
-      volatile short minDeri = 32767;
-      volatile short maxDeri = -32768;
-
-      volatile const unsigned char windowSize = 64;
-      volatile const unsigned char rollLen = 1;
-      volatile const float oderi = 0.025;
-      volatile const float ograd = 0.15;
-
-      #pragma pack(push, 1)
-      typedef struct inputs {
-        short * amps;
-        short * deris;
-        short * grads;
-        short * avgs;
-        short * parts;
-      } inputs_t;
-      #pragma pack(pop)
-
-      void onHRM(int amp,void *argss){
-        inputs_t* args = argss;
-        args->amps[tick % windowSize] = amp;
-
-        rollingAvg = rollingAvg + amp;
-        if ( tick >= rollLen ) {
-          rollingAvg = rollingAvg - args->amps[(tick-rollLen) % windowSize];
-        }
-        args->avgs[tick % windowSize] = rollingAvg/rollLen;
-        if ( tick > 3 ) {
-          unsigned int cc = tick-2;
-          short * use = args->amps; //use avg?
-          short deriV = use[(cc-1) % windowSize] - 2 * use[cc % windowSize] + use[(cc+1) % windowSize];
-        //short deriV = use[(cc-2) % windowSize] - 4 * use[(cc-1) % windowSize] + 6 * use[cc % windowSize] - 4 * use[(cc+1) % windowSize] + use[(cc+2) % windowSize];
-          short gradV = (use[(tick) % windowSize] - use[(tick-2) % windowSize])>>1;
-        //gradV = (gradV < 0) ? -gradV : gradV;
-          args->grads[tick % windowSize] = gradV;
-          args->deris[tick % windowSize] = deriV;
-
-          args->parts[tick % windowSize] = 0;
-          const short wdw = 32;
-          if ( tick >= wdw ) {
-            if ( minGrad == args->grads[(tick-wdw) % windowSize] )
-            {
-              minGrad = 32767; //recalculate min
-              for ( int i = 0; i < wdw; i++ ) {
-                if ( args->grads[(tick-i) % windowSize] < minGrad )
-                  minGrad = args->grads[(tick-i) % windowSize];
-              }
-            } else {
-              if ( gradV < minGrad ) minGrad = gradV;
-            }
-            if ( minDeri == args->deris[(tick-wdw) % windowSize] )
-            {
-              minDeri = 32767; //recalculate min
-              for ( int i = 0; i < wdw; i++ ) {
-                if ( args->deris[(tick-i) % windowSize] < minDeri )
-                  minDeri = args->deris[(tick-i) % windowSize];
-              }
-            } else {
-              if ( deriV < minDeri ) minDeri = deriV;
-            }
-            if ( maxGrad == args->grads[(tick-wdw) % windowSize] )
-            {
-              maxGrad = -32768; //recalculate max
-              for ( int i = 0; i < wdw; i++ ) {
-                if ( args->grads[(tick-i) % windowSize] > maxGrad )
-                  maxGrad = args->grads[(tick-i) % windowSize];
-              }
-            } else {
-              if ( gradV > maxGrad ) maxGrad = gradV;
-            }
-            if ( maxDeri == args->deris[(tick-wdw) % windowSize] )
-            {
-              maxDeri = -32768; //recalculate min
-              for ( int i = 0; i < wdw; i++ ) {
-                if ( args->deris[(tick-i) % windowSize] > maxDeri )
-                  maxDeri = args->deris[(tick-i) % windowSize];
-              }
-            } else {
-              if ( deriV > maxDeri ) maxDeri = deriV;
-            }
-            short rangeGrad = maxGrad - minGrad;
-            short rangeDeri = maxDeri - minDeri;
-          //gradV < minGrad+rangeGrad*ograd
-            if (  deriV < minDeri+rangeDeri*oderi ) args->parts[tick % windowSize] = 25;
-          }
-        }
-        tick++;
-      }
-      int getTick(){
-        return tick;
-      }
-      `);
-
-    Bangle.setLCDTimeout(0);
-    Bangle.setLCDPower(1);
-    Bangle.setHRMPower(1);
-    Bangle.setOptions({lcdPowerTimeout:0,backlightTimeout:0,powerSave:false});
-    Bangle.setPollInterval(80);
-    let windowSize = 64;
-    var amps = new Int16Array(windowSize);
-    var deris = new Int16Array(windowSize);
-    var grads = new Int16Array(windowSize);
-    var avgs = new Int16Array(windowSize);
-    var partial = new Int16Array(windowSize);
-    var inputs = new Uint32Array(6);
-    let hr = 0;
-
-    var ampsAddr = E.getAddressOf(amps,true);
+    var ampsAddr = E.getAddressOf(hrmBlob.amps,true);
     if (!ampsAddr) {
-      throw new Error("Not a Flat String");
+    throw new Error("Not a Flat String");
     }
-    var derisAddr = E.getAddressOf(deris,true);
+    var derisAddr = E.getAddressOf(hrmBlob.deris,true);
     if (!derisAddr) {
-      throw new Error("Not a Flat String");
+    throw new Error("Not a Flat String");
     }
-    var gradsAddr = E.getAddressOf(grads,true);
+    var gradsAddr = E.getAddressOf(hrmBlob.grads,true);
     if (!gradsAddr) {
-      throw new Error("Not a Flat String");
+    throw new Error("Not a Flat String");
     }
-    var avgsAddr = E.getAddressOf(avgs,true);
+    var avgsAddr = E.getAddressOf(hrmBlob.avgs,true);
     if (!avgsAddr) {
-      throw new Error("Not a Flat String");
+    throw new Error("Not a Flat String");
     }
-    var partsAddr = E.getAddressOf(partial,true);
+    var partsAddr = E.getAddressOf(hrmBlob.partial,true);
     if (!partsAddr) {
-      throw new Error("Not a Flat String");
+    throw new Error("Not a Flat String");
     }
     inputs[0] = ampsAddr;
     inputs[1] = derisAddr;
@@ -147,77 +48,33 @@
     if (!inputsAddr) {
       throw new Error("Not a Flat String");
     }
-
-    let tickBefore = 0;
-    setInterval(function hmm(){
-      //how many hrm ticks within 5 second interval, B1=50hz hrm, B2=25hz hrm
-      //if cpu is busy, can't get max ticks
-      let tick=c.getTick();
-      print("true hrm polling : ",(tick-tickBefore)/5);
-      tickBefore = tick;
-      return;
-      g.clear(true);
-      g.setFont("4x6:0.5");
-      let flatAmps = [];
-      let flatDeri = [];
-      let flatGrad = [];
-      let flatPartial = [];
-        //let flatAverages = [];
-        //let flatBeats = [];
-      for ( let i = 0; i < windowSize; i++ ) {
-        flatAmps.push(amps[(tick + 1 + i) % windowSize]);
-        flatDeri.push(deris[(tick + 1 + i) % windowSize]);
-        flatGrad.push(grads[(tick + 1 + i) % windowSize]);
-        flatPartial.push(partial[(tick + 1 + i) % windowSize]);
-      }
-        //white
-      require("graph").drawLine(g, flatAmps,{axes:false,miny:-600,maxy:600,gridy:200});
-      g.setColor(0,1,1);
-        //cyan
-      require("graph").drawLine(g, flatDeri,{axes:false,miny:-50,maxy:50});
-      g.setColor(0,1,0);
-        //green
-      require("graph").drawLine(g, flatGrad,{axes:false,miny:-50,maxy:50});
-      g.setColor(1,0,1);
-        //purple
-      require("graph").drawLine(g, flatPartial,{axes:false,miny:0,maxy:50});
-      g.setColor(1,1,1);
-        //red
-      g.setFont("Vector:32");
-      g.drawString(hr.toString(),180,40);
-    },5000);
-
+    
     let rawHRM = function(hrm) {
-      c.onHRM(hrm.filt,inputsAddr);
-    };
-
-    let myHRM = function(hrm) {
-      print("myHrm");
-      hrm.bpm = hr;
+      hrmBlob.onHRM(hrm.filt,inputsAddr);
+      hrm.bpm = hrmBlob.hr;
       hrm.confidence = 100;
       origHRMs.emit("HRM",hrm);
     };
-    let myObj = {
-      origOn: Bangle.on
-    };
     let doOnce = false;
-    let origHRMs = {};
-    Bangle.on = function (event,handler) {
+    Bangle.on = ( (o)=>{
+    return function (event,handler) {
       if (event === "HRM") {
+          //gobble
         origHRMs.on("HRM",handler);
-        handler = myHRM;
         if (!doOnce) {
-          Bangle.on('HRM-raw',rawHRM);
+          o.call(Bangle,'HRM-raw',rawHRM);
           doOnce = true;
         }
-      }
-      myObj.origOn.call(Bangle,event,handler);
+      } else
+      o.call(Bangle,event,handler);
     };
+    }) (Bangle.on);
     Bangle.removeListener = ( (o)=>{
-      return function(event,listener) {
-        if (event === "HRM") origHRMs.removeListener(event,listener);
-        else o(event,listener);
-      };
+    return function(event,listener) {
+      if (event === "HRM") origHRMs.removeListener(event,listener);
+      else o.call(Bangle,event,listener);
+    };
     }) (Bangle.removeListener);
+    return hrmBlob;
   }
-}
+})();

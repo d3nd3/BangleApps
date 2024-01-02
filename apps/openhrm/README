@@ -1,3 +1,11 @@
-# Creator
-d3nd3
-[github.com/d3nd3](https://github.com/d3nd3)
+## About
+I was curious if I could improve heartrate beat detection.
+
+### Binary C Code
+Required to keep the rate of execution high.
+The algorithm is in `alg.c` in this repo, but its compiled by the `https://www.espruino.com/service/compiler` service.  Paste `alg.c` into the webIDE and upload to a file to get the binary yourself if that is your thing, the you would have to copy paste the output into the boot.js file.
+## Settings
+### Enable
+Override the default Bangle.HRM event with this algorithm.
+## Creator
+[@d3nd3 github.com/d3nd3](https://github.com/d3nd3)

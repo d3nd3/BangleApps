@@ -1,9 +1,9 @@
 {
   "id": "openhrm",
-  "name": "Open HR Algorithm",
+  "name": "OpenHRM",
   "version": "0.01",
   "description": "Use basic math to improve beat detection",
-  "tags": "health,system",
+  "tags": "health,system,hrm,heart,heartrate,bpm,algorithm,d3nd3,fitness",
   "type": "bootloader",
   "supports": ["BANGLEJS","BANGLEJS2"],
   "storage": [

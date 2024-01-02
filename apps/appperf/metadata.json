@@ -1,9 +1,10 @@
 {
   "id": "appperf",
-  "name": "Cpu Benchmark",
+  "name": "CpuBench",
   "version": "0.01",
   "description": "Measure app baseline cpu usage",
-  "tags": "tool",
+  "tags": "tool,d3nd3,cpu,power,battery,poll,polling,benchmark,drain,measure,performance",
+  "type": "app",
   "supports": ["BANGLEJS","BANGLEJS2"],
   "storage": [
     {"name":"appperf.app.js","url":"app.js"},
