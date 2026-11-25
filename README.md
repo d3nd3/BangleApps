@@ -1,6 +1,8 @@
 Bangle.js App Loader (and Apps)
 ================================
 
+Prefer pictures? Start with **[HUMANS.md](HUMANS.md)**.
+
 [![Build Status](https://github.com/espruino/BangleApps/actions/workflows/nodejs.yml/badge.svg)](https://github.com/espruino/BangleApps/actions/workflows/nodejs.yml)
 
 * Try the **release version** at [banglejs.com/apps](https://banglejs.com/apps)

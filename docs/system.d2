@@ -1,0 +1,70 @@
+# BangleApps — system overview
+# A thin fork-origin note: an untouched mirror of espruino/BangleApps.
+# Zones run left to right: origin -> core -> state -> external.
+# Style classes set strokes only, so light and dark stay readable.
+
+title: |md
+  # BangleApps
+  The Bangle.js App Loader — a static web page that diffs `apps.json` against a watch's storage and pushes the missing apps over Web Bluetooth.
+| {near: top-center}
+
+direction: right
+grid-columns: 2
+grid-rows: 2
+horizontal-gap: 170
+vertical-gap: 110
+
+origin: Origin {
+  direction: down
+
+  upstream: `espruino/BangleApps` · Gordon Williams · MIT, every app included
+  mirror: `d3nd3/BangleApps` · no source change of our own · 6212 behind upstream, 0 ahead
+  submodules: `core` = EspruinoAppLoaderCore, `webtools` = EspruinoWebTools · pinned, uninitialised here
+  ci: nodejs workflow · `npm test` = `bin/sanitycheck.js` plus eslint over every app
+}
+
+state: State {
+  direction: down
+
+  browser: `localStorage` · chosen device, favourites, BLE flag, stats toggle
+  watch: watch storage · one `.info` JSON per installed app is the diff input
+  library: `apps.json` · the catalogue the loader trusts
+  local: `apps.local.json` · gitignored, a dev-only test catalogue
+  defaults: `defaultapps_banglejs1.json`, `defaultapps_banglejs2.json` · first-boot sets
+}
+
+core: Core {
+  direction: down
+
+  page: `index.html` · Spectre shell, fixed script order, no bundler
+  loader: `loader.js` · device chooser, install and reinstall, stats, language picker
+  comms: `core/js/comms.js` and `core/lib/espruinotools.js` · pinned EspruinoTools copy, Web Bluetooth
+  catalog: `bin/create_apps_json.sh` · folds every `apps/APPID/metadata.json` into `apps.json`
+  apps: `apps/` · 698 directories of `app.js`, `widget.js`, `metadata.json`, icons
+  tooling: `bin/firmwaremaker.js`, `thumbnailer.js`, `runapptests.js` · release scripts
+}
+
+ext: External {
+  direction: down
+
+  watch: Bangle.js 1 and 2 · Espruino firmware, BLE UART, 28-character filenames
+  pages: GitHub Pages · release at banglejs.com/apps, dev at espruino.github.io
+  stats: `sendUsageStats` · POST to banglejs.com/submit_app_stats.php — `uid`, firmware, app ids, favourites
+  npm: eslint, acorn, http-server · development only, nothing at runtime
+}
+
+origin -> core: the whole loader is upstream's
+core -> state: catalogue in, watch storage diffed
+core -> ext: BLE writes to the watch
+
+classes: {
+  origin: {style: {stroke: "#2f6fbf"}}
+  core: {style: {stroke: "#2f8f5f"}}
+  state: {style: {stroke: "#a86a12"; stroke-dash: 3}}
+  ext: {style: {stroke: "#8a4fbf"; stroke-dash: 5}}
+}
+
+origin.class: origin
+core.class: core
+state.class: state
+ext.class: ext
